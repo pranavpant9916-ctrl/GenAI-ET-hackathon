@@ -1,35 +1,35 @@
 const { getRepoFiles } = require("../services/repo.service");
-const { filterFiles } = require("../utils/fileFilter");
 const runRules = require("../services/ruleEngine.service");
 const runSecurityChecks = require("../services/security.service");
 const geminiReview = require("../services/gemini.service");
-const auditLog = require("../services/audit.service");
+const { addLog } = require("../services/audit.service");
 
 exports.analyzeRepo = async (req, res) => {
     try {
         const { repoUrl } = req.body;
 
         const files = await getRepoFiles(repoUrl);
-        const validFiles = filterFiles(files);
+
+        const limitedFiles = files.slice(0, 15); // IMPORTANT
 
         let results = [];
 
-        for (const file of validFiles) {
+        for (const file of limitedFiles) {
             const { name, content } = file;
 
             const ruleIssues = runRules(content);
             const securityIssues = runSecurityChecks(content);
             const aiReview = await geminiReview(content);
 
-            const allIssues = [...ruleIssues, ...securityIssues];
+            const issues = [...ruleIssues, ...securityIssues];
 
             const fileResult = {
                 file: name,
-                issues: [...ruleIssues, ...securityIssues],
+                issues,
                 aiReview
             };
 
-            auditLog(fileResult);
+            addLog(fileResult);
             results.push(fileResult);
         }
 
@@ -47,7 +47,6 @@ exports.analyzeRepo = async (req, res) => {
                 summary[issue.severity.toLowerCase()]++;
             });
         });
-
 
         res.json({ summary, files: results });
 
