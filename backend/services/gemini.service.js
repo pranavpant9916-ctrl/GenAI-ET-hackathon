@@ -9,7 +9,10 @@ async function callGemini(model, prompt) {
                 {
                     parts: [{ text: prompt }]
                 }
-            ]
+            ],
+            generationConfig: {
+                maxOutputTokens: 2000
+            }
         },
         {
             params: {
@@ -18,18 +21,19 @@ async function callGemini(model, prompt) {
             headers: {
                 "Content-Type": "application/json"
             },
-            timeout: 10000
+            timeout: 40000
         }
     );
 }
 
-// 🔥 Main function with fallback
 exports.generate = async (prompt, preferredModel = MODELS.FAST) => {
     const modelsToTry = [preferredModel, MODELS.FALLBACK];
 
     for (let model of modelsToTry) {
         try {
+            console.time(`Gemini-${model}`);
             const res = await callGemini(model, prompt);
+            console.timeEnd(`Gemini-${model}`);
 
             return {
                 modelUsed: model,
@@ -37,15 +41,21 @@ exports.generate = async (prompt, preferredModel = MODELS.FAST) => {
             };
 
         } catch (err) {
+            const isTimeout = err.code === "ECONNABORTED";
+            const isNetworkError = !err.response;
+
             console.error(`❌ Model failed: ${model}`, {
                 status: err.response?.status,
-                message: err.message
+                message: err.message,
+                isNetworkError,
+                isTimeout
             });
 
-            // Only retry on 404 (model issue)
-            if (err.response?.status !== 404) {
+            if (!isTimeout && !isNetworkError && err.response?.status !== 404) {
                 throw err;
             }
+
+            console.log(`🔁 Retrying with next model...`);
         }
     }
 

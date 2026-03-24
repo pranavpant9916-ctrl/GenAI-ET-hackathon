@@ -1,12 +1,14 @@
 const { generate } = require("./gemini.service");
 const { MODELS } = require("../config/gemini.config");
 
-// 🧠 Step 1: Analyze code
 async function analyzeCode(repoCode) {
     const prompt = `
 You are a code reviewer.
 
-Analyze the following code and return JSON:
+Analyze the following code and return JSON while following given rules:
+    - Summary should be concise and short.
+    - Easy to understand language for beginners.
+    - Consider code to be used high level organisations and thus expected to be professional.
 
 Code:
 ${repoCode}
@@ -15,7 +17,6 @@ ${repoCode}
     return generate(prompt, MODELS.FAST);
 }
 
-// 🔐 Step 2: Security check
 async function securityCheck(repoCode) {
     const prompt = `
 Find security vulnerabilities in this code:
@@ -27,7 +28,6 @@ ${repoCode}
     return generate(prompt, MODELS.PRO);
 }
 
-// 🔍 Step 3: Verification (FIXED)
 async function verify(repoCode, previousOutput) {
     const prompt = `
 Verify and correct this analysis.
@@ -44,14 +44,12 @@ Return corrected JSON only.
     return generate(prompt, MODELS.PRO);
 }
 
-// 🚀 Main pipeline
 exports.runAnalysisPipeline = async (repoCode) => {
     try {
         if (!repoCode || repoCode.trim() === "") {
             throw new Error("❌ No code provided to pipeline");
         }
 
-        // ⚡ Parallel execution (performance boost)
         const [analysis, security] = await Promise.all([
             analyzeCode(repoCode),
             securityCheck(repoCode)
@@ -62,7 +60,6 @@ exports.runAnalysisPipeline = async (repoCode) => {
             security: security.data
         };
 
-        // 🧠 Final verification
         const verified = await verify(repoCode, combined);
 
         return {
