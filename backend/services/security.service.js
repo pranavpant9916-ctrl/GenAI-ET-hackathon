@@ -1,23 +1,21 @@
-module.exports = (code) => {
-    let issues = [];
+exports.scan = (files) => {
+    const issues = [];
 
-    if (code.includes("eval(")) {
-        issues.push({
-            type: "SECURITY",
-            severity: "HIGH",
-            message: "Use of eval is dangerous",
-            fix: "Avoid eval; use safer alternatives"
-        });
-    }
+    files.forEach(file => {
+        if (file.content.includes("API_KEY")) {
+            issues.push({
+                file: file.name,
+                issue: "Hardcoded API key"
+            });
+        }
 
-    if (code.includes("API_KEY")) {
-        issues.push({
-            type: "SECURITY",
-            severity: "HIGH",
-            message: "Possible hardcoded secret detected",
-            fix: "Avoid eval; use safer alternatives"
-        });
-    }
+        if (file.content.includes("eval(")) {
+            issues.push({
+                file: file.name,
+                issue: "Use of eval is unsafe"
+            });
+        }
+    });
 
     return issues;
 };

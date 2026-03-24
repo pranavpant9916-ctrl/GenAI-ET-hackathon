@@ -1,50 +1,32 @@
 const axios = require("axios");
+const { filterFiles } = require("../utils/fileFilter");
 
-const GITHUB_API = "https://api.github.com";
+exports.fetchRepoFiles = async (repoUrl) => {
+    try {
+        const match = repoUrl.match(/github.com\/(.*?)\/(.*)/);
+        const owner = match[1];
+        const repo = match[2];
 
-const ignoreExtensions = [".json", ".lock", ".md", ".png", ".jpg", ".svg"];
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents`;
 
-function isValidFile(name) {
-    return (
-        (name.endsWith(".js") || name.endsWith(".ts")) &&
-        !ignoreExtensions.some(ext => name.endsWith(ext))
-    );
-}
+        const res = await axios.get(apiUrl);
 
-async function fetchRepoContents(owner, repo, path = "") {
-    const url = `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`;
-    const res = await axios.get(url);
+        const files = [];
 
-    let files = [];
-
-    for (const item of res.data) {
-        if (item.type === "file" && isValidFile(item.name)) {
-            try {
-                const fileRes = await axios.get(item.download_url);
+        for (let file of res.data) {
+            if (file.type === "file") {
+                const contentRes = await axios.get(file.download_url);
                 files.push({
-                    name: item.path,
-                    content: fileRes.data
+                    name: file.name,
+                    path: file.path,
+                    content: contentRes.data
                 });
-            } catch (err) {
-                console.log("Skipped:", item.path);
             }
         }
 
-        if (item.type === "dir") {
-            if (item.name === "node_modules" || item.name === ".git") continue;
-
-            const nested = await fetchRepoContents(owner, repo, item.path);
-            files = files.concat(nested);
-        }
+        return filterFiles(files);
+    } catch (err) {
+        console.error(err);
+        throw new Error("Error fetching repo");
     }
-
-    return files;
-}
-
-exports.getRepoFiles = async (repoUrl) => {
-    const parts = repoUrl.split("/");
-    const owner = parts[3];
-    const repo = parts[4];
-
-    return await fetchRepoContents(owner, repo);
 };

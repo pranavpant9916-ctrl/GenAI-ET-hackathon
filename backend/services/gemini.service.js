@@ -1,39 +1,53 @@
-const Anthropic = require("@anthropic-ai/sdk");
+const axios = require("axios");
+const { GEMINI_BASE_URL, MODELS } = require("../config/gemini.config");
 
-const client = new Anthropic({
-    apiKey: process.env.API_KEY1,
-});
-
-module.exports = async (code) => {
-    try {
-        const response = await client.messages.create({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 500,
-            messages: [
+async function callGemini(model, prompt) {
+    return axios.post(
+        `${GEMINI_BASE_URL}/models/${model}:generateContent`,
+        {
+            contents: [
                 {
-                    role: "user",
-                    content: `You are a senior software engineer reviewing production-grade systems.
-
-Analyze the following code for:
-- Bugs
-- Security issues
-- Performance problems
-- Best practices
-- Scalability risks
-- Technical debt (6–12 months)
-
-Give short, clear bullet points.
-
-Code:
-${code}`
+                    parts: [{ text: prompt }]
                 }
             ]
-        });
+        },
+        {
+            params: {
+                key: process.env.API_KEY1
+            },
+            headers: {
+                "Content-Type": "application/json"
+            },
+            timeout: 10000
+        }
+    );
+}
 
-        return response.content[0].text;
+// 🔥 Main function with fallback
+exports.generate = async (prompt, preferredModel = MODELS.FAST) => {
+    const modelsToTry = [preferredModel, MODELS.FALLBACK];
 
-    } catch (err) {
-        console.error(err);
-        return "Claude analysis failed";
+    for (let model of modelsToTry) {
+        try {
+            const res = await callGemini(model, prompt);
+
+            return {
+                modelUsed: model,
+                data: res.data
+            };
+
+        } catch (err) {
+            console.error(`❌ Model failed: ${model}`, {
+                status: err.response?.status,
+                message: err.message
+            });
+
+            // Only retry on 404 (model issue)
+            if (err.response?.status !== 404) {
+                throw err;
+            }
+        }
     }
+
+    throw new Error("All Gemini models failed");
 };
