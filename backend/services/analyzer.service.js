@@ -14,7 +14,8 @@ const extractTasksFromContent = (file) => {
                 type: "CODE_SMELL",
                 priority: line.includes("FIXME") ? "HIGH" : "MEDIUM",
                 status: "PENDING",
-                reason: "Detected TODO/FIXME in code"
+                reason: "Detected TODO/FIXME in code",
+                createdAt: new Date() // ✅ ADDED
             });
         }
 
@@ -26,7 +27,8 @@ const extractTasksFromContent = (file) => {
                 type: "QUALITY",
                 priority: "LOW",
                 status: "PENDING",
-                reason: "Debug statement in production"
+                reason: "Debug statement in production",
+                createdAt: new Date() // ✅ ADDED
             });
         }
     });
@@ -43,9 +45,7 @@ exports.analyzeFiles = async (files) => {
         let aiSummary = "No insights";
 
         try {
-            // limit size (prevents API failure)
             const trimmedContent = file.content.slice(0, 3000);
-
             aiSummary = await geminiReview(trimmedContent);
         } catch (err) {
             console.log("Gemini failed:", err.message);

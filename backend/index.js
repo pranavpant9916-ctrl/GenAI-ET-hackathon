@@ -18,3 +18,4 @@ app.listen(PORT, () => {
 })
 app.use("/tasks", require("./routes/task.route"));
 app.use("/agents", require("./routes/agent.route"));
+app.use("/monitor", require("./routes/monitor.route"));
