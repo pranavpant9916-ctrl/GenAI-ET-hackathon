@@ -1,6 +1,8 @@
 const axios = require("axios");
 const { filterFiles } = require("../utils/fileFilter");
-
+const { analyzeFiles } = require("./analyzer.service");
+const { addTasks } = require("./taskStore.service");
+const { addLog } = require("./audit.service");
 exports.fetchRepoFiles = async (repoUrl) => {
     try {
         const match = repoUrl.match(/github.com\/(.*?)\/(.*)/);
@@ -24,7 +26,25 @@ exports.fetchRepoFiles = async (repoUrl) => {
             }
         }
 
-        return filterFiles(files);
+        const filteredFiles = filterFiles(files);
+
+// 🔥 NEW FEATURE: analyze + generate tasks
+const tasks = await analyzeFiles(filteredFiles);
+
+// store tasks
+addTasks(tasks);
+
+// audit log
+addLog({
+    action: "TASK_GENERATION",
+    count: tasks.length,
+    repo: repoUrl
+});
+
+return {
+    files: filteredFiles,
+    tasks
+};
     } catch (err) {
         console.error(err);
         throw new Error("Error fetching repo");
