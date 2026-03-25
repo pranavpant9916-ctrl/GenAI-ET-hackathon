@@ -8,3 +8,10 @@ module.exports = (data) => {
 
     console.log("Audit Log:", data.file);
 };
+
+exports.addLog = (entry) => {
+    console.log("AUDIT LOG:", {
+        ...entry,
+        timestamp: new Date()
+    });
+};
