@@ -9,8 +9,10 @@ exports.fetchRepoFiles = async (repoUrl) => {
         const owner = match[1];
         const repo = match[2];
 
-        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents`;
+        const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`);
+        const defaultBranch = repoRes.data.default_branch;
 
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents?ref=${defaultBranch}`;
         const res = await axios.get(apiUrl);
 
         const files = [];
@@ -29,22 +31,22 @@ exports.fetchRepoFiles = async (repoUrl) => {
         const filteredFiles = filterFiles(files);
 
 
-const tasks = await analyzeFiles(filteredFiles);
+        const tasks = await analyzeFiles(filteredFiles);
 
 
-addTasks(tasks);
+        addTasks(tasks);
 
 
-addLog({
-    action: "TASK_GENERATION",
-    count: tasks.length,
-    repo: repoUrl
-});
+        addLog({
+            action: "TASK_GENERATION",
+            count: tasks.length,
+            repo: repoUrl
+        });
 
-return {
-    files: filteredFiles,
-    tasks
-};
+        return {
+            files: filteredFiles,
+            tasks
+        };
     } catch (err) {
         console.error(err);
         throw new Error("Error fetching repo");
