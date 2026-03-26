@@ -1,6 +1,6 @@
 const { fetchRepoFiles } = require("./repo.services");
 const { analyzeFiles } = require("./analyzer.service");
-const { addLog } = require("./audit.service");
+const { addLog } = require("./audit.service.js");
 
 // 1. RETRIEVER AGENT
 const retrieverAgent = async (repoUrl) => {

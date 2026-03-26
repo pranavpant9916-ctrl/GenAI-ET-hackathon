@@ -1,17 +1,22 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 
 const {
-    uploadZip,
+    uploadFile,     // unified file upload handler
     uploadCode,
     uploadRepoUrl,
 } = require("../controllers/update.controller");
 
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+// Multer setup to accept any file type
+const upload = multer({
+    dest: "uploads/",
+    limits: { fileSize: 10 * 1024 * 1024 }, // optional: limit file size to 10MB
+});
 
-router.post("/zip", upload.single("file"), uploadZip);
-router.post("/code", uploadCode);
-router.post("/url", uploadRepoUrl);
+// Routes
+router.post("/file", upload.single("file"), uploadFile); // Accepts any file
+router.post("/code", uploadCode);                        // Raw code input
+router.post("/url", uploadRepoUrl);                     // GitHub repo URL
 
 module.exports = router;

@@ -10,12 +10,12 @@ app.use(express.json());
 
 app.use("/analyze", analyzeRoute);
 app.use("/api/upload", uploadRoute);
+app.use("/tasks", require("./routes/task.route"));
+app.use("/agents", require("./routes/agent.route"));
+app.use("/monitor", require("./routes/monitor.route"));
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-})
-app.use("/tasks", require("./routes/task.route"));
-app.use("/agents", require("./routes/agent.route"));
-app.use("/monitor", require("./routes/monitor.route"));
+});

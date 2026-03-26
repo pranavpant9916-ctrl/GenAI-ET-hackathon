@@ -1,17 +1,15 @@
 const logs = [];
 
-module.exports = (data) => {
+const addLog = (entry) => {
     logs.push({
-        ...data,
+        ...entry,
         timestamp: new Date()
     });
 
-    console.log("Audit Log:", data.file);
-};
-
-exports.addLog = (entry) => {
     console.log("AUDIT LOG:", {
         ...entry,
         timestamp: new Date()
     });
 };
+
+module.exports = { addLog };
