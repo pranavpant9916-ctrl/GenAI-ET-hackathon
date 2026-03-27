@@ -7,7 +7,6 @@
 [![Built with Google Gemini]]
 [![Next.js]]
 [![Node.js]]
-[![MongoDB]]
 
 ---
 
@@ -130,7 +129,7 @@ flowchart TD
     G -->|Health & Metrics| H[📋 Dashboard View]
     
     subgraph Audit Trail
-        I[(MongoDB - Audit Logs)]
+        I[(Console - Audit Logs)]
     end
     
     B -.->|Log| I
@@ -150,7 +149,7 @@ flowchart TD
 5. **⚡ Fix Generation** — The **Execution Agent** produces detailed remediation plans for the highest-priority issues.
 6. **✅ Verification** — The **Verifier Agent** cross-checks each issue and proposed fix for accuracy and soundness.
 7. **📊 Monitoring** — The **Monitor Agent** tracks end-to-end pipeline health, ensuring no process drift or bottlenecks.
-8. **📋 Audit** — Every agent action, decision, and result is logged to **MongoDB** for a complete, auditable trail.
+8. **📋 Audit** — Every agent action, decision, and result is logged to **console** for a complete, auditable trail.
 
 ---
 
@@ -161,7 +160,7 @@ flowchart TD
 | **Frontend** | Next.js 15, React 19, Material UI (MUI) | Modern, responsive dashboard for agent interaction and real-time visualization |
 | **Backend** | Node.js, Express.js | RESTful API server, agent orchestration, and business logic |
 | **AI Engine** | Google Gemini API | Powers the Analyzer Agent's intelligent code understanding and fix generation |
-| **Database** | MongoDB (Mongoose ODM) | Persistent storage for tasks, audit logs, agent metrics, and workflow state |
+| **Database** | Persistent storage for tasks, audit logs, agent metrics, and workflow state |
 | **Architecture** | Multi-Agent MVC | Clean separation of agents, routes, controllers, and services |
 
 ---
@@ -201,7 +200,6 @@ GenAI-ET-hackathon/
 ### Prerequisites
 
 - **Node.js** (v18 or higher)
-- **MongoDB** (local or cloud instance — e.g., MongoDB Atlas)
 - **Google Gemini API Key** ([Get one here](https://aistudio.google.com/app/apikey))
 
 ### Installation
@@ -221,7 +219,6 @@ npm install
 Create a `.env` file in the `backend/` directory:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
 GEMINI_API_KEY=your_google_gemini_api_key
 ```
 
@@ -266,7 +263,7 @@ Our solution is designed to excel across the stated evaluation dimensions:
 |---|---|
 | **Depth of Autonomy** | All 6 agents operate end-to-end without human intervention — from code retrieval to verified fix plans |
 | **Error Recovery** | The Verifier Agent catches false positives; the Monitor Agent detects pipeline failures and triggers re-routing |
-| **Auditability** | Every agent decision is logged to MongoDB with timestamps, inputs, outputs, and reasoning trails |
+| **Auditability** | Every agent decision is logged to Console with timestamps, inputs, outputs, and reasoning trails |
 | **Real-World Applicability** | Code review is a universal enterprise need — our platform plugs into any GitHub workflow instantly |
 
 ---
