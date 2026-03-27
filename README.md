@@ -263,7 +263,7 @@ Our solution is designed to excel across the stated evaluation dimensions:
 |---|---|
 | **Depth of Autonomy** | All 6 agents operate end-to-end without human intervention — from code retrieval to verified fix plans |
 | **Error Recovery** | The Verifier Agent catches false positives; the Monitor Agent detects pipeline failures and triggers re-routing |
-| **Auditability** | Every agent decision is logged to MongoDB with timestamps, inputs, outputs, and reasoning trails |
+| **Auditability** | Every agent decision is logged to Console with timestamps, inputs, outputs, and reasoning trails |
 | **Real-World Applicability** | Code review is a universal enterprise need — our platform plugs into any GitHub workflow instantly |
 
 ---
