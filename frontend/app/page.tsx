@@ -193,7 +193,7 @@ export default function GenAIFrontend() {
           <h2>Tasks</h2>
           <button
             onClick={() =>
-              handleRequest("/api/tasks", {}, false, "file", "GET")
+              handleRequest("/tasks", {}, false, "file", "GET")
             }
             disabled={loading}
           >

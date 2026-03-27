@@ -7,5 +7,9 @@ exports.addTasks = (newTasks) => {
 exports.getTasks = () => tasks;
 
 exports.updateTaskStatus = (id, status) => {
-    if (tasks[id]) tasks[id].status = status;
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+        task.status = status;
+        task.updatedAt = new Date();
+    }
 };
