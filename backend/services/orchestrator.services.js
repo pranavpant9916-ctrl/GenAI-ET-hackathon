@@ -1,14 +1,25 @@
 const { generate } = require("./gemini.service");
 const { MODELS } = require("../config/gemini.config");
+const { formatAnalysisResponse, formatSecurityResponse, formatFinalResponse, extractTextFromGeminiResponse } = require("./responseFormatter.service");
 
 async function analyzeCode(repoCode) {
     const prompt = `
-You are a code reviewer.
+You are a code reviewer. Analyze the following code and provide feedback in this JSON format:
+{
+  "summary": "Brief overview of the code quality",
+  "issues": [
+    {"type": "issue name", "severity": "high|medium|low", "description": "explanation"},
+  ],
+  "recommendations": [
+    "Actionable improvement suggestions"
+  ],
+  "qualityScore": "A/B/C/D"
+}
 
-Analyze the following code and return JSON while following given rules:
-    - Summary should be concise and short.
-    - Easy to understand language for beginners.
-    - Consider code to be used high level organisations and thus expected to be professional.
+Follow these rules:
+- Summary should be concise (1-2 sentences)
+- Use beginner-friendly language
+- Assume code is for high-level organizations (professional standards)
 
 Code:
 ${repoCode}
@@ -19,7 +30,16 @@ ${repoCode}
 
 async function securityCheck(repoCode) {
     const prompt = `
-Find security vulnerabilities in this code:
+You are a security expert. Scan this code for vulnerabilities and respond in this JSON format:
+{
+  "riskLevel": "critical|high|medium|low",
+  "vulnerabilities": [
+    {"type": "CVE type", "severity": "critical|high|medium|low", "description": "explanation", "fix": "how to fix"}
+  ],
+  "recommendations": [
+    "Security best practices to implement"
+  ]
+}
 
 Code:
 ${repoCode}
@@ -28,51 +48,35 @@ ${repoCode}
     return generate(prompt, MODELS.PRO);
 }
 
-async function verify(repoCode, previousOutput) {
-    const prompt = `
-Verify and correct this analysis.
-
-Code:
-${repoCode}
-
-Previous Analysis:
-${JSON.stringify(previousOutput)}
-
-Return corrected JSON only.
-`;
-
-    return generate(prompt, MODELS.PRO);
-}
-
-exports.runAnalysisPipeline = async (repoCode) => {
+exports.runAnalysisPipeline = async (repoCode, filename = "uploaded_code") => {
     try {
         if (!repoCode || repoCode.trim() === "") {
-            throw new Error("❌ No code provided to pipeline");
+            throw new Error("No code provided to pipeline");
         }
 
-        const [analysis, security] = await Promise.all([
+        const [analysisRaw, securityRaw] = await Promise.all([
             analyzeCode(repoCode),
             securityCheck(repoCode)
         ]);
 
-        const combined = {
-            analysis: analysis.data,
-            security: security.data
-        };
+        // Extract text from Gemini responses
+        const analysisText = extractTextFromGeminiResponse(analysisRaw);
+        const securityText = extractTextFromGeminiResponse(securityRaw);
 
-        const verified = await verify(repoCode, combined);
+        // Format the responses
+        const analysis = formatAnalysisResponse(analysisRaw);
+        const security = formatSecurityResponse(securityRaw);
 
-        return {
-            success: true,
-            result: verified.data
-        };
+        // Return professional, user-friendly response
+        return formatFinalResponse(analysis, security, filename);
 
     } catch (err) {
-        console.error("❌ Pipeline Error:", err.message);
+        console.error("Pipeline Error:", err.message);
 
         return {
             success: false,
-            error: err.message
+            error: err.message,
+            message: "Code analysis failed. Please check backend logs."
         };
     }
 };

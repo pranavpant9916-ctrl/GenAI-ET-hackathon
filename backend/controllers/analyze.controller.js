@@ -7,11 +7,20 @@ exports.analyzeRepo = async (req, res) => {
         if (!code) {
             return res.status(400).json({
                 success: false,
+                error: "Validation Error",
                 message: "Code is required"
             });
         }
 
-        const result = await runAnalysisPipeline(code);
+        if (code.length > 50000) {
+            return res.status(413).json({
+                success: false,
+                error: "Payload Too Large",
+                message: "Code exceeds maximum length (50,000 characters)"
+            });
+        }
+
+        const result = await runAnalysisPipeline(code, "direct-input");
 
         res.json(result);
 
@@ -20,7 +29,8 @@ exports.analyzeRepo = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: "Internal Server Error"
+            error: "Server Error",
+            message: "Code analysis failed. Please try again."
         });
     }
 };
